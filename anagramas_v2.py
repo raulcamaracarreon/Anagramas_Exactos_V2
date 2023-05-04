@@ -1,48 +1,85 @@
 import os
 import streamlit as st
+import git
 
-# Ruta de la carpeta que contiene los archivos de texto del diccionario
-path_diccionario = "C:/Users/raul.camara/Proyectos/Anagramas_v2/dict_rae_txt/dics"
+# Clases y funciones del trie
+class TrieNode:
+    def __init__(self):
+        self.children = {}
+        self.is_end_of_word = False
 
-# Función que devuelve una lista de anagramas de una palabra
-def encontrar_anagramas(palabra, archivos):
-    # Eliminamos los caracteres no alfabéticos de la palabra y la convertimos a minúsculas
-    palabra = "".join(filter(str.isalpha, palabra)).lower()
-    # Buscamos anagramas en cada archivo
-    anagramas = []
-    for archivo in archivos:
-        with open(os.path.join(path_diccionario, archivo), "r", encoding="utf-8") as f:
-            for linea in f:
-                # Eliminamos los caracteres no alfabéticos de la palabra del archivo y la convertimos a minúsculas
-                palabra_archivo = "".join(filter(str.isalpha, linea)).lower()
-                # Si ambas palabras tienen la misma longitud y las mismas letras, son anagramas exactos
-                if sorted(palabra) == sorted(palabra_archivo) and len(palabra) == len(palabra_archivo):
-                    anagramas.append(linea.strip())
-    return anagramas
+class Trie:
+    def __init__(self):
+        self.root = TrieNode()
+
+    def insert(self, word):
+        node = self.root
+        for letter in word:
+            if letter not in node.children:
+                node.children[letter] = TrieNode()
+            node = node.children[letter]
+        node.is_end_of_word = True
+
+    def _search_anagrams(self, node, available_letters, prefix, anagrams):
+        if node.is_end_of_word:
+            anagrams.add(prefix)
+        
+        for letter, count in available_letters.items():
+            if count > 0 and letter in node.children:
+                available_letters[letter] -= 1
+                self._search_anagrams(node.children[letter], available_letters, prefix + letter, anagrams)
+                available_letters[letter] += 1
+
+    def search_anagrams(self, input_word):
+        available_letters = {}
+        for letter in input_word:
+            if letter in available_letters:
+                available_letters[letter] += 1
+            else:
+                available_letters[letter] = 1
+
+        anagrams = set()
+        self._search_anagrams(self.root, available_letters, "", anagrams)
+        return anagrams
+
+def cargar_diccionario(path, trie):
+    for letra in "abcdefghijklmnñopqrstuvwxyz":
+        with open(os.path.join(path, f"{letra}.txt"), encoding="utf-8") as archivo:
+            lineas = archivo.read().splitlines()
+            for linea in lineas:
+                palabras = linea.split(', ')
+                for palabra in palabras:
+                    trie.insert(palabra.lower())
 
 # Configuración de la aplicación Streamlit
-st.set_page_config(page_title="Anagramas de palabras en el diccionario", page_icon=":memo:", layout="wide")
+st.set_page_config(
+    page_title="Generador de Anagramas",
+    page_icon=":🔁:",
+    layout="centered",
+    initial_sidebar_state="auto",
+)
 
-# Título de la aplicación
-st.title("Anagramas exactos de palabras del diccionario de la Real Academia Española de la Lengua")
+# Clonar el repositorio del diccionario desde GitHub
+repo_url = "https://github.com/raulcamaracarreon/Anagramas_Exactos_V2.git"
+repo_path = "dict_rae_txt"
+if not os.path.exists(repo_path):
+    git.Git(".").clone(repo_url, repo_path)
 
-# Campo de entrada para la palabra
-palabra = st.text_input("Ingresa una palabra -sin acentos- para buscar sus anagramas:")
+# Imprimir la ruta del diccionario
+path_diccionario = os.path.join(repo_path, "dics")
+print(f"Ruta del diccionario: {path_diccionario}")
 
-# Validación de la palabra ingresada
-if not palabra:
-    st.warning("Por favor ingresa una palabra")
-elif len(palabra) > 26:
-    st.warning("La longitud de la palabra no puede ser mayor que la cantidad de letras contenidas en cualquier archivo del diccionario")
+# Cargar el diccionario
+trie = Trie()
+cargar_diccionario(path_diccionario, trie)
+
+# Interfaz de usuario
+st.title("Generador de Anagramas")
+palabras = st.text_input("Introduce una o varias palabras:")
+
+if palabras:
+    anagramas = trie.search_anagrams(palabras)
+    st.subheader(f"Se han encontrado {len(anagramas)} anagramas:")
+    st.write(", ".join(sorted(anagramas)))
 else:
-    # Obtenemos la lista de archivos del diccionario
-    archivos = os.listdir(path_diccionario)
-    # Buscamos anagramas de la palabra
-    anagramas = encontrar_anagramas(palabra, archivos)
-    # Mostramos los anagramas encontrados
-    if not anagramas:
-        st.write("No se han encontrado anagramas para la palabra ingresada")
-    else:
-        st.write(f"Se han encontrado {len(anagramas)} anagramas para la palabra '{palabra}':")
-        for anagrama in anagramas:
-            st.write(anagrama)
+    st.write("Por favor, ingrese una o varias palabras para generar anagramas.")
