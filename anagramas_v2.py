@@ -53,7 +53,7 @@ def cargar_diccionario(path, trie):
 
 # Configuración de la aplicación Streamlit
 st.set_page_config(
-    page_title="Generador de Anagramas Exactos en español (RAE)",
+    page_title="Generador de Anagramas V_2.0",
     page_icon=":🔁:",
     layout="centered",
     initial_sidebar_state="auto",
@@ -74,7 +74,7 @@ trie = Trie()
 cargar_diccionario(path_diccionario, trie)
 
 # Interfaz de usuario
-st.title("Generador de Anagramas")
+st.title("Generador de Anagramas Exactos en Castellano (basado en el diccionario de la RAE*")
 palabras = st.text_input("Introduce una o varias palabras:")
 
 if palabras:
