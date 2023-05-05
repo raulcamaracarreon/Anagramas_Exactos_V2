@@ -21,9 +21,9 @@ class Trie:
         node.is_end_of_word = True
 
     def _search_anagrams(self, node, available_letters, prefix, anagrams):
-        if node.is_end_of_word:
+        if node.is_end_of_word and not any(available_letters.values()):
             anagrams.add(prefix)
-        
+
         for letter, count in available_letters.items():
             if count > 0 and letter in node.children:
                 available_letters[letter] -= 1
@@ -79,7 +79,8 @@ palabras = st.text_input("Introduce una o varias palabras:")
 
 if palabras:
     anagramas = trie.search_anagrams(palabras)
-    st.subheader(f"Se han encontrado {len(anagramas)} anagramas:")
+    st.subheader(f"Se han encontrado {len(anagramas)} anagramas exactos:")
     st.write(", ".join(sorted(anagramas)))
 else:
-    st.write("Por favor, ingrese una o varias palabras para generar anagramas.")
+    st.write("Por favor, ingrese una o varias palabras para generar anagramas exactos.")
+
