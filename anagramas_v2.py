@@ -76,7 +76,7 @@ cargar_diccionario(path_diccionario, trie)
 # Interfaz de usuario
 st.title("Generador de Anagramas Exactos en Castellano (basado en el diccionario de la RAE*")
 palabras = st.text_input("Introduce una o varias palabras:")
-
+st.text("Introduce únicamente una palabra, sin acentos ni mayúsculas")
 if palabras:
     anagramas = trie.search_anagrams(palabras)
     st.subheader(f"Se han encontrado {len(anagramas)} anagramas exactos:")
