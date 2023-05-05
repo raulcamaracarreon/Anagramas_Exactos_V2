@@ -1,5 +1,5 @@
 import os
-import streamlit as st
+import streamlit as st 
 import git
 
 # Clases y funciones del trie
@@ -53,7 +53,7 @@ def cargar_diccionario(path, trie):
 
 # Configuración de la aplicación Streamlit
 st.set_page_config(
-    page_title="Generador de Anagramas",
+    page_title="Generador de Anagramas Exactos en español (RAE)",
     page_icon=":🔁:",
     layout="centered",
     initial_sidebar_state="auto",
